@@ -1,0 +1,48 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIBO - Rosto Digital</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="container">
+        <h1>BIBO</h1>
+        <p>Simulador do rosto digital</p>
+
+        <div class="tela-robo">
+            <div class="olhos" id="olhos">
+                <div class="olho"></div>
+                <div class="olho"></div>
+            </div>
+        </div>
+
+        
+<div class="controles">
+    <button onclick="mudarExpressao('normal')">Normal</button>
+    <button onclick="mudarExpressao('feliz')">Feliz</button>
+    <button onclick="mudarExpressao('triste')">Triste</button>
+    <button onclick="mudarExpressao('surpreso')">Surpreso</button>
+    <button onclick="piscar()">Piscar</button>
+</div>
+
+<h3>Movimentação dos olhos</h3>
+
+<div class="controles">
+    <button onclick="olhar('esquerda')">⬅ Esquerda</button>
+    <button onclick="olhar('cima')">⬆ Cima</button>
+    <button onclick="olhar('baixo')">⬇ Baixo</button>
+    <button onclick="olhar('direita')">Direita ➡</button>
+    <button onclick="olhar('centro')">Centro</button>
+</div>
+
+
+        <p id="status">Expressão atual: normal</p>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
+  

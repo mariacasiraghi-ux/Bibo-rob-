@@ -1,0 +1,139 @@
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: #11111c;
+    color: white;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    width: 100%;
+    max-width: 650px;
+    padding: 24px;
+    text-align: center;
+}
+
+h1 {
+    color: #b99aff;
+    letter-spacing: 6px;
+}
+
+p {
+    color: #aaa9bd;
+}
+
+.tela-robo {
+    width: 100%;
+    max-width: 480px;
+    aspect-ratio: 4 / 3;
+    margin: 30px auto;
+    background: #050610;
+    border: 8px solid #343047;
+    border-radius: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.olhos {
+    display: flex;
+    gap: 42px;
+    align-items: center;
+    justify-content: center;
+}
+
+.olho {
+    width: 75px;
+    height: 115px;
+    background: #a4ecff;
+    border-radius: 40px;
+    box-shadow: 0 0 25px #63dfff70;
+    transition: all 0.35s ease;
+    position: relative;
+}
+
+.olho::after {
+    content: "";
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    width: 20px;
+    height: 30px;
+    border-radius: 50%;
+    background: #ffffff70;
+}
+
+.olhos.feliz .olho {
+    height: 45px;
+    border-radius: 0 0 50px 50px;
+    background: transparent;
+    border-bottom: 12px solid #a4ecff;
+    box-shadow: none;
+    transform: translateY(10px);
+}
+
+.olhos.feliz .olho::after {
+    display: none;
+}
+
+.olhos.triste .olho {
+    height: 75px;
+    transform: translateY(12px) rotate(10deg);
+}
+
+.olhos.triste .olho:last-child {
+    transform: translateY(12px) rotate(-10deg);
+}
+
+.olhos.surpreso .olho {
+    width: 90px;
+    height: 125px;
+    border-radius: 50%;
+}
+
+.olhos.piscando .olho {
+    height: 8px !important;
+    border-radius: 50%;
+    border: none;
+    background: #a4ecff;
+    box-shadow: none;
+}
+
+.olhos.piscando .olho::after {
+    display: none;
+}
+
+.controles {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+button {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 12px;
+    background: #8062ca;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+button:hover {
+    background: #a78be8;
+}
+
+#status {
+    margin-top: 22px;
+}
+  
