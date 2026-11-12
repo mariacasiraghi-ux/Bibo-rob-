@@ -3,7 +3,12 @@ from comandos import interpretar_comando
 from controlador import ControladorBibo
 from personalidade import PersonalidadeBibo
 from inteligencia import InteligenciaBibo
+from config import MODO_IA
 
+
+# ==========================================
+# INICIALIZAÇÃO DO BIBO
+# ==========================================
 
 bibo = ControladorBibo()
 personalidade = PersonalidadeBibo()
@@ -14,7 +19,7 @@ print("=" * 45)
 print("          BIBO - SISTEMA CENTRAL")
 print("=" * 45)
 
-print("BIBO iniciado com sucesso!")
+print("\nBIBO iniciado com sucesso!")
 
 print("\nMovimentos:")
 print("frente, tras, esquerda, direita, parar")
@@ -24,17 +29,27 @@ print("\nExpressões:")
 print("feliz, triste")
 
 print("\nConversação:")
-print("Você pode conversar e ensinar preferências!")
+print("Personalidade e memória ativadas!")
 
 print("\nInteligência artificial:")
-print("Modo de simulação ativado.")
+
+if MODO_IA == "gemini":
+    print("Gemini online ativado!")
+else:
+    print("Modo de simulação ativado.")
 
 print("\nDigite 'sair' para encerrar.")
 
 
+# ==========================================
+# CONVERSAÇÃO PRINCIPAL
+# ==========================================
+
 while True:
+
     try:
         entrada = input("\nVocê: ").strip()
+
     except (KeyboardInterrupt, EOFError):
         print("\nBIBO: Até logo!")
         break
@@ -53,19 +68,37 @@ while True:
         bibo.enviar_comando(comando)
         continue
 
-    # 2. Consultar a personalidade e a memória
+    # 2. Consultar personalidade e memória
     resposta = personalidade.responder(entrada)
 
-    # 3. Se não reconhecer, consultar a IA simulada
+    # 3. Perguntas desconhecidas vão para a IA
     if resposta["texto"].startswith(
         "Ainda estou aprendendo a conversar!"
     ):
-        resposta = inteligencia.responder(entrada)
 
-    # 4. Exibir a resposta
+        print("\n[BIBO] Consultando inteligência artificial...")
+
+        try:
+            resposta = inteligencia.responder(entrada)
+
+        except Exception as erro:
+            print(
+                "[BIBO] Erro na inteligência:",
+                type(erro).__name__
+            )
+
+            resposta = {
+                "texto": (
+                    "Minha inteligência artificial está "
+                    "temporariamente indisponível."
+                ),
+                "expressao": "normal"
+            }
+
+    # 4. Exibir resposta
     print("\nBIBO:", resposta["texto"])
 
-    # 5. Atualizar o rosto digital
+    # 5. Atualizar rosto digital
     bibo.atualizar_servidor({
-        "expressao": resposta["expressao"]
+        "expressao": resposta.get("expressao", "normal")
     })

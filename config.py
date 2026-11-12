@@ -2,7 +2,7 @@
 # CONFIGURAÇÕES GERAIS DO BIBO
 
 # Modo de inteligência artificial
-MODO_IA = "simulacao"
+MODO_IA = "gemini"
 
 # Modelo para a futura conexão online
 MODELO_IA = "gpt-4.1-mini"

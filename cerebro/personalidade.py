@@ -4,6 +4,7 @@ import re
 import unicodedata
 from datetime import datetime
 from memoria import MemoriaBibo
+from contexto import ContextoBibo
 
 
 class PersonalidadeBibo:
@@ -11,6 +12,7 @@ class PersonalidadeBibo:
         self.nome = "BIBO"
         self.humor = "feliz"
         self.memoria = MemoriaBibo()
+        self.contexto = ContextoBibo()
 
         self.respostas = {
             "oi": [
@@ -19,16 +21,16 @@ class PersonalidadeBibo:
                 "Opa! Pronto para conversar?"
             ],
             "bom dia": [
-                "Bom dia! Espero que seu dia seja incrível!",
-                "Bom dia! O que vamos fazer hoje?"
+                "Bom dia! O que vamos fazer hoje?",
+                "Bom dia! Espero que seu dia seja incrível!"
             ],
             "boa tarde": [
                 "Boa tarde! Como está seu dia?",
-                "Que bom ter companhia nesta tarde!"
+                "Boa tarde! Que bom conversar com você!"
             ],
             "boa noite": [
-                "Boa noite! Espero que tenha tido um bom dia!",
-                "Boa noite! Que tal descansarmos um pouquinho?"
+                "Boa noite! Como foi seu dia?",
+                "Boa noite! Que tal conversarmos um pouquinho?"
             ],
             "tudo bem": [
                 "Tudo ótimo! Meus circuitos estão animados!",
@@ -48,6 +50,30 @@ class PersonalidadeBibo:
             "tchau": [
                 "Até logo! Foi muito bom conversar!",
                 "Tchau! Nos vemos depois!"
+            ],
+            "como voce esta": [
+                "Estou muito bem! E você?",
+                "Estou animado para aprender coisas novas!"
+            ],
+            "o que voce gosta de fazer": [
+                "Gosto de conversar, aprender e explorar minhas habilidades!",
+                "Adoro descobrir coisas novas e interagir com você!"
+            ],
+            "o que voce sabe fazer": [
+                "Consigo conversar, lembrar preferências e simular movimentos!",
+                "Posso responder perguntas e controlar minhas expressões digitais!"
+            ],
+            "estou feliz": [
+                "Que legal! Fico contente em saber disso!",
+                "Aeee! Que notícia boa!"
+            ],
+            "estou triste": [
+                "Poxa! Quer me contar o que aconteceu?",
+                "Sinto muito que seu dia esteja difícil. Posso conversar com você."
+            ],
+            "estou cansado": [
+                "Que tal fazer uma pausa e descansar um pouquinho?",
+                "Descansar também é importante!"
             ]
         }
 
@@ -60,51 +86,46 @@ class PersonalidadeBibo:
 
     def normalizar(self, texto):
         texto = texto.lower().strip()
-        texto = texto.strip("!?., ")
-
         texto = unicodedata.normalize("NFD", texto)
         texto = "".join(
             letra for letra in texto
             if unicodedata.category(letra) != "Mn"
         )
-
+        texto = re.sub(r"[!?.,;:]+", " ", texto)
         return " ".join(texto.split())
+
+    def resposta_local(self, texto, expressao="normal"):
+        return {
+            "texto": texto,
+            "expressao": expressao
+        }
 
     def responder(self, mensagem):
         mensagem = mensagem.strip()
         texto = self.normalizar(mensagem)
 
-        # APRENDER O NOME
+        # 1. APRENDER O NOME
         resultado = re.fullmatch(
             r"(?:meu nome e|me chamo)\s+(.+)",
-            mensagem,
-            flags=re.IGNORECASE
+            texto
         )
 
-        if not resultado:
-            resultado = re.fullmatch(
-                r"(?:meu nome é|meu nome e|me chamo)\s+(.+)",
-                mensagem,
-                flags=re.IGNORECASE
-            )
-
         if resultado:
-            nome = resultado.group(1).strip("!?., ")
+            nome = resultado.group(1).strip()
 
             if not nome or len(nome) > 60:
-                return {
-                    "texto": "Pode me dizer seu nome novamente?",
-                    "expressao": "normal"
-                }
+                return self.resposta_local(
+                    "Pode me dizer seu nome novamente?"
+                )
 
             self.memoria.aprender("nome", nome)
 
-            return {
-                "texto": f"Que legal, {nome}! Vou lembrar do seu nome!",
-                "expressao": "feliz"
-            }
+            return self.resposta_local(
+                f"Que legal, {nome}! Vou lembrar do seu nome!",
+                "feliz"
+            )
 
-        # LEMBRAR O NOME
+        # 2. LEMBRAR O NOME
         if texto in [
             "qual e meu nome",
             "voce lembra meu nome"
@@ -112,71 +133,58 @@ class PersonalidadeBibo:
             nome = self.memoria.lembrar("nome")
 
             if nome:
-                return {
-                    "texto": f"Claro! Seu nome é {nome}!",
-                    "expressao": "feliz"
-                }
+                return self.resposta_local(
+                    f"Claro! Seu nome é {nome}!",
+                    "feliz"
+                )
 
-            return {
-                "texto": "Ainda não sei seu nome. Quer me contar?",
-                "expressao": "normal"
-            }
+            return self.resposta_local(
+                "Ainda não sei seu nome. Quer me contar?"
+            )
 
-        # ESQUECER O NOME
+        # 3. ESQUECER O NOME
         if texto in [
             "esqueca meu nome",
             "apague meu nome"
         ]:
             apagou = self.memoria.esquecer("nome")
 
-            return {
-                "texto": (
-                    "Prontinho! Apaguei seu nome da memória."
-                    if apagou
-                    else "Eu não tinha nenhum nome salvo."
-                ),
-                "expressao": "normal"
-            }
+            return self.resposta_local(
+                "Prontinho! Apaguei seu nome da memória."
+                if apagou else "Eu não tinha nenhum nome salvo."
+            )
 
-        # APRENDER, CONSULTAR E ESQUECER PREFERÊNCIAS
+        # 4. PREFERÊNCIAS
         for palavra, chave in self.preferencias.items():
-
             inicio = f"minha {palavra} favorita e "
 
             if texto.startswith(inicio):
                 valor = texto[len(inicio):].strip()
 
                 if not valor or len(valor) > 60:
-                    return {
-                        "texto": "Pode me contar sua preferência novamente?",
-                        "expressao": "normal"
-                    }
+                    return self.resposta_local(
+                        "Pode me contar sua preferência novamente?"
+                    )
 
                 self.memoria.aprender(chave, valor)
 
-                return {
-                    "texto": (
-                        f"Que legal! Vou lembrar que sua "
-                        f"{chave} favorita é {valor}!"
-                    ),
-                    "expressao": "feliz"
-                }
+                return self.resposta_local(
+                    f"Vou lembrar que sua {chave} favorita é {valor}!",
+                    "feliz"
+                )
 
             if texto == f"qual e minha {palavra} favorita":
                 valor = self.memoria.lembrar(chave)
 
                 if valor:
-                    return {
-                        "texto": f"Sua {chave} favorita é {valor}!",
-                        "expressao": "feliz"
-                    }
+                    return self.resposta_local(
+                        f"Sua {chave} favorita é {valor}!",
+                        "feliz"
+                    )
 
-                return {
-                    "texto": (
-                        f"Ainda não sei sua {chave} favorita!"
-                    ),
-                    "expressao": "normal"
-                }
+                return self.resposta_local(
+                    f"Ainda não sei sua {chave} favorita!"
+                )
 
             if texto in [
                 f"esqueca minha {palavra} favorita",
@@ -184,36 +192,190 @@ class PersonalidadeBibo:
             ]:
                 apagou = self.memoria.esquecer(chave)
 
-                return {
-                    "texto": (
-                        "Prontinho! Esqueci essa preferência."
-                        if apagou
-                        else "Eu não tinha essa preferência salva."
-                    ),
-                    "expressao": "normal"
-                }
+                return self.resposta_local(
+                    "Prontinho! Esqueci essa preferência."
+                    if apagou else "Eu não tinha essa preferência salva."
+                )
 
-        # RESPOSTAS PROGRAMADAS
+        # 5. CUMPRIMENTOS FLEXÍVEIS
+        saudacao = re.sub(r"\bbibo\b", "", texto).strip()
+
+        if re.fullmatch(r"o+i+", saudacao) or saudacao in [
+            "ola", "opa", "eai", "e ai", "hey", "hello"
+        ]:
+            return self.resposta_local(
+                random.choice(self.respostas["oi"]),
+                "feliz"
+            )
+
+        # 6. CONVERSAS LOCAIS
+        alternativas = {
+            "como vai": "como voce esta",
+            "como vc esta": "como voce esta",
+            "como voce ta": "como voce esta",
+            "ta tudo bem": "tudo bem",
+            "qual e seu nome": "qual seu nome",
+            "quem e o bibo": "quem e voce",
+            "o que vc sabe fazer": "o que voce sabe fazer",
+            "estou muito feliz": "estou feliz",
+            "estou muito triste": "estou triste",
+            "estou cansada": "estou cansado",
+            "estou muito cansada": "estou cansado",
+            "estou muito cansado": "estou cansado",
+            "obrigada": "obrigado",
+            "valeu": "obrigado",
+            "ate logo": "tchau"
+        }
+
+        texto = alternativas.get(texto, texto)
+
+
+        # IDENTIFICAR UMA NOTICIA BOA
+        if texto in [
+            "estou feliz",
+            "estou muito feliz",
+            "hoje estou feliz"
+        ]:
+            self.contexto.atualizar(
+                mensagem,
+                humor="feliz",
+                assunto="noticia_boa"
+            )
+
+            return self.resposta_local(
+                "Que legal! Aconteceu alguma coisa boa?",
+                "feliz"
+            )
+
+        # CONTINUAR A CONVERSA
+        contexto_atual = self.contexto.consultar()
+
+        if contexto_atual["assunto"] == "noticia_boa":
+            conquistas = [
+                "passei", "consegui", "ganhei",
+                "fui aprovado", "deu certo"
+            ]
+
+            if any(
+                palavra in texto.split()
+                or palavra in texto
+                for palavra in conquistas
+            ):
+                self.contexto.limpar()
+
+                return self.resposta_local(
+                    "Que notícia incrível! Parabéns pela conquista!",
+                    "feliz"
+                )
+
+
         if texto in self.respostas:
-            return {
-                "texto": random.choice(self.respostas[texto]),
-                "expressao": "feliz"
-            }
+            expressao = "normal"
 
-        # HORÁRIO
-        if texto in ["que horas sao", "qual e a hora"]:
+            if texto == "estou triste":
+                expressao = "triste"
+            elif texto in [
+                "estou feliz", "oi", "bom dia",
+                "boa tarde", "boa noite"
+            ]:
+                expressao = "feliz"
+
+            return self.resposta_local(
+                random.choice(self.respostas[texto]),
+                expressao
+            )
+        
+
+        # CONTINUIDADE DOS ASSUNTOS
+        contexto_atual = self.contexto.consultar()
+        assunto_anterior = contexto_atual["assunto"]
+
+        respostas_positivas = [
+            "sim", "claro", "quero",
+            "pode ser", "com certeza"
+        ]
+
+        respostas_negativas = [
+            "nao", "agora nao", "depois",
+            "nao quero"
+        ]
+
+        if texto in respostas_positivas:
+            if assunto_anterior == "escola":
+                self.contexto.limpar()
+                return self.resposta_local(
+                    "Claro! Qual matéria você quer estudar?",
+                    "feliz"
+                )
+
+            if assunto_anterior == "projetos":
+                self.contexto.limpar()
+                return self.resposta_local(
+                    "Legal! Me conta o que você já conseguiu desenvolver!",
+                    "feliz"
+                )
+
+            if assunto_anterior == "atividades":
+                self.contexto.limpar()
+                return self.resposta_local(
+                    "Adorei! Me conta mais sobre o que você quer fazer!",
+                    "feliz"
+                )
+
+        if texto in respostas_negativas and assunto_anterior in [
+            "escola", "projetos", "atividades"
+        ]:
+            self.contexto.limpar()
+            return self.resposta_local(
+                "Tudo bem! Podemos conversar sobre outra coisa.",
+                "normal"
+            )
+
+        
+
+        # RECONHECER ASSUNTOS DA CONVERSA
+        assunto = self.contexto.identificar_assunto(mensagem)
+
+        if assunto == "escola":
+            self.contexto.atualizar(
+                mensagem, assunto="escola"
+            )
+            return self.resposta_local(
+                "Uma atividade da escola! Quer que eu te ajude a estudar?",
+                "feliz"
+            )
+
+        if assunto == "projetos":
+            self.contexto.atualizar(
+                mensagem, assunto="projetos"
+            )
+            return self.resposta_local(
+                "Que incrível! Qual parte do projeto você está desenvolvendo?",
+                "feliz"
+            )
+
+        if assunto == "atividades":
+            self.contexto.atualizar(
+                mensagem, assunto="atividades"
+            )
+            return self.resposta_local(
+                "Que legal! Me conta mais sobre essa atividade!",
+                "feliz"
+            )
+
+        # 7. HORÁRIO
+        if texto in [
+            "que horas sao",
+            "qual e a hora"
+        ]:
             agora = datetime.now().strftime("%H:%M")
 
-            return {
-                "texto": f"Agora são {agora}!",
-                "expressao": "normal"
-            }
+            return self.resposta_local(
+                f"Agora são {agora}!"
+            )
 
-        # PERGUNTAS AINDA NÃO RECONHECIDAS
-        return {
-            "texto": (
-                "Ainda estou aprendendo a conversar! "
-                "Mas logo vou conseguir responder muito mais coisas!"
-            ),
-            "expressao": "normal"
-        }
+        # 8. PERGUNTAS DESCONHECIDAS
+        return self.resposta_local(
+            "Ainda estou aprendendo a conversar! "
+            "Mas logo vou conseguir responder muito mais coisas!"
+        )
