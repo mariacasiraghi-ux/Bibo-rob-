@@ -8,10 +8,26 @@ let expressaoAtual = "normal";
 let direcaoAtual = "centro";
 let piscando = false;
 
-const expressoes = ["normal", "feliz", "triste", "surpreso"];
-const direcoes = ["esquerda", "direita", "cima", "baixo", "centro"];
+let ultimaDirecaoServidor = 0;
+
+const expressoes = [
+    "normal",
+    "feliz",
+    "triste",
+    "surpreso"
+];
+
+const direcoes = [
+    "esquerda",
+    "direita",
+    "cima",
+    "baixo",
+    "centro"
+];
 
 function atualizarRosto() {
+    if (!olhos) return;
+
     olhos.className = "olhos";
 
     if (expressaoAtual !== "normal") {
@@ -24,9 +40,11 @@ function atualizarRosto() {
         olhos.classList.add("piscando");
     }
 
-    statusTexto.textContent =
-        "Expressão: " + expressaoAtual +
-        " | Olhando: " + direcaoAtual;
+    if (statusTexto) {
+        statusTexto.textContent =
+            "Expressão: " + expressaoAtual +
+            " | Olhando: " + direcaoAtual;
+    }
 }
 
 function mudarExpressao(expressao) {
@@ -55,13 +73,26 @@ function piscar() {
     }, 180);
 }
 
-// Consultar o cérebro do BIBO
+// Movimento automatico dos olhos
+function movimentarOlhos() {
+    // Prioriza comandos recentes do servidor
+    if (Date.now() - ultimaDirecaoServidor < 3000) {
+        return;
+    }
+
+    const direcaoAleatoria =
+        direcoes[Math.floor(Math.random() * direcoes.length)];
+
+    olhar(direcaoAleatoria);
+}
+
+// Consultar o cerebro do BIBO
 async function consultarServidor() {
     try {
         const resposta = await fetch(SERVIDOR);
 
         if (!resposta.ok) {
-            throw new Error("Servidor indisponível");
+            throw new Error("Servidor indisponivel");
         }
 
         const dados = await resposta.json();
@@ -70,7 +101,11 @@ async function consultarServidor() {
             mudarExpressao(dados.expressao);
         }
 
-        if (direcoes.includes(dados.direcao)) {
+        if (
+            direcoes.includes(dados.direcao) &&
+            dados.direcao !== "centro"
+        ) {
+            ultimaDirecaoServidor = Date.now();
             olhar(dados.direcao);
         }
 
@@ -79,10 +114,13 @@ async function consultarServidor() {
     }
 }
 
-// Piscadas automáticas
+// Piscar automaticamente
 setInterval(piscar, 4000);
 
-// Consultar o servidor a cada segundo
+// Movimentar olhos automaticamente
+setInterval(movimentarOlhos, 2500);
+
+// Consultar servidor a cada segundo
 setInterval(consultarServidor, 1000);
 
 atualizarRosto();

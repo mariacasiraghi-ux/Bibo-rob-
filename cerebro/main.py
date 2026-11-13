@@ -5,14 +5,19 @@ from personalidade import PersonalidadeBibo
 from inteligencia import InteligenciaBibo
 from config import MODO_IA
 
+# Monitoramento automatico da bateria
+from monitor_segundo_plano import MonitorSegundoPlano
+
 
 # ==========================================
-# INICIALIZAÇÃO DO BIBO
+# INICIALIZACAO DO BIBO
 # ==========================================
 
 bibo = ControladorBibo()
 personalidade = PersonalidadeBibo()
 inteligencia = InteligenciaBibo()
+
+monitor = MonitorSegundoPlano()
 
 
 print("=" * 45)
@@ -25,80 +30,96 @@ print("\nMovimentos:")
 print("frente, tras, esquerda, direita, parar")
 print("acenar, dancar")
 
-print("\nExpressões:")
+print("\nExpressoes:")
 print("feliz, triste")
 
-print("\nConversação:")
-print("Personalidade e memória ativadas!")
+print("\nConversacao:")
+print("Personalidade e memoria ativadas!")
 
-print("\nInteligência artificial:")
+print("\nInteligencia artificial:")
 
 if MODO_IA == "gemini":
     print("Gemini online ativado!")
 else:
-    print("Modo de simulação ativado.")
+    print("Modo de simulacao ativado.")
 
+# ==========================================
+# INICIAR MONITORAMENTO
+# ==========================================
+
+monitor.iniciar()
+
+print("\nMonitoramento virtual da bateria ativado!")
 print("\nDigite 'sair' para encerrar.")
 
 
 # ==========================================
-# CONVERSAÇÃO PRINCIPAL
+# CONVERSACAO PRINCIPAL
 # ==========================================
 
-while True:
-
-    try:
-        entrada = input("\nVocê: ").strip()
-
-    except (KeyboardInterrupt, EOFError):
-        print("\nBIBO: Até logo!")
-        break
-
-    if not entrada:
-        continue
-
-    if entrada.lower() == "sair":
-        print("\nBIBO: Até logo!")
-        break
-
-    # 1. Verificar comandos do robô
-    comando = interpretar_comando(entrada)
-
-    if comando:
-        bibo.enviar_comando(comando)
-        continue
-
-    # 2. Consultar personalidade e memória
-    resposta = personalidade.responder(entrada)
-
-    # 3. Perguntas desconhecidas vão para a IA
-    if resposta["texto"].startswith(
-        "Ainda estou aprendendo a conversar!"
-    ):
-
-        print("\n[BIBO] Consultando inteligência artificial...")
+try:
+    while True:
 
         try:
-            resposta = inteligencia.responder(entrada)
+            entrada = input("\nVocê: ").strip()
 
-        except Exception as erro:
+        except (KeyboardInterrupt, EOFError):
+            print("\nBIBO: Até logo!")
+            break
+
+        if not entrada:
+            continue
+
+        if entrada.lower() == "sair":
+            print("\nBIBO: Até logo!")
+            break
+
+        # 1. Verificar comandos do robo
+        comando = interpretar_comando(entrada)
+
+        if comando:
+            bibo.enviar_comando(comando)
+            continue
+
+        # 2. Consultar personalidade e memoria
+        resposta = personalidade.responder(entrada)
+
+        # 3. Perguntas desconhecidas vao para a IA
+        if resposta["texto"].startswith(
+            "Ainda estou aprendendo a conversar!"
+        ):
+
             print(
-                "[BIBO] Erro na inteligência:",
-                type(erro).__name__
+                "\n[BIBO] Consultando inteligencia artificial..."
             )
 
-            resposta = {
-                "texto": (
-                    "Minha inteligência artificial está "
-                    "temporariamente indisponível."
-                ),
-                "expressao": "normal"
-            }
+            try:
+                resposta = inteligencia.responder(entrada)
 
-    # 4. Exibir resposta
-    print("\nBIBO:", resposta["texto"])
+            except Exception as erro:
+                print(
+                    "[BIBO] Erro na inteligencia:",
+                    type(erro).__name__
+                )
 
-    # 5. Atualizar rosto digital
-    bibo.atualizar_servidor({
-        "expressao": resposta.get("expressao", "normal")
-    })
+                resposta = {
+                    "texto": (
+                        "Minha inteligencia artificial esta "
+                        "temporariamente indisponivel."
+                    ),
+                    "expressao": "normal"
+                }
+
+        # 4. Exibir resposta
+        print("\nBIBO:", resposta["texto"])
+
+        # 5. Atualizar rosto digital
+        bibo.atualizar_servidor({
+            "expressao": resposta.get(
+                "expressao", "normal"
+            )
+        })
+
+finally:
+    # Encerrar monitoramento ao sair
+    monitor.parar()

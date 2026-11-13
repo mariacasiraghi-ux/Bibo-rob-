@@ -1,0 +1,258 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#15121d">
+  <title>Memória e Personalidade | BIBOU OS</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/design-system.css">
+  <link rel="stylesheet" href="../css/memoria.css">
+
+  <script src="../js/bibou-preferencias.js" defer></script>
+  <script src="../js/memoria.js" defer></script>
+
+</head>
+
+<body class="memoria-premium">
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <a href="dashboard.html" class="logo">
+        <span class="brand-symbol">b<span>.</span></span>
+        <span class="brand-name">bibou <small>OS</small></span>
+      </a>
+
+      <div class="menu-label">WORKSPACE</div>
+      <nav class="menu" aria-label="Menu principal">
+        <a class="menu-item" href="dashboard.html"><span class="nav-icon">⌂</span> Visão geral</a>
+        <a class="menu-item" href="conversar.html"><span class="nav-icon">◌</span> Conversar</a>
+        <a class="menu-item" href="controle.html"><span class="nav-icon">✣</span> Controle</a>
+        <a class="menu-item" href="expressoes.html"><span class="nav-icon">◡</span> Expressões</a>
+
+        <div class="menu-label menu-label-second">SISTEMA</div>
+        <a class="menu-item ativo" href="memoria.html" aria-current="page"><span class="nav-icon">◇</span> Memória</a>
+        <a class="menu-item" href="sensores.html"><span class="nav-icon">⌁</span> Sensores</a>
+        <a class="menu-item" href="sensores.html#energia"><span class="nav-icon">ϟ</span> Energia</a>
+        <a class="menu-item" href="configuracoes.html"><span class="nav-icon">⚙</span> Configurações</a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="sidebar-device">
+          <span class="sidebar-device-dot"></span>
+          <div>
+            <strong data-bibou-nome>BIBOU</strong>
+            <small>Ambiente de demonstração</small>
+          </div>
+        </div>
+        <p>Interface BIBOU OS · v1.0</p>
+      </div>
+    </aside>
+
+    <div class="overlay" id="overlay" hidden></div>
+
+    <div class="conteudo">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button id="menuToggle" class="menu-toggle" type="button"
+                  aria-label="Abrir menu" aria-expanded="false">☰</button>
+          <div class="breadcrumb">
+            <span>BIBOU OS</span>
+            <span class="breadcrumb-divider">/</span>
+            <strong>Memória</strong>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <span class="topbar-demo"><span></span> Modo demonstração</span>
+          <a href="configuracoes.html" class="profile-button"
+             aria-label="Configurações">⚙</a>
+        </div>
+      </header>
+
+      <main class="memory-main">
+        <div class="page-heading">
+          <div>
+            <span class="eyebrow">IDENTIDADE E APRENDIZADO</span>
+            <h1>Memória e personalidade</h1>
+            <p>Personalize a maneira como o BIBOU conversa e lembra das coisas.</p>
+          </div>
+          <span class="memory-tag">Memória local</span>
+        </div>
+
+        <div class="memory-layout">
+          <div class="memory-column">
+            <section class="memory-panel">
+              <div class="memory-heading">
+                <div>
+                  <h2>Personalidade do BIBOU</h2>
+                  <p>Escolha como ele vai se comportar nas conversas.</p>
+                </div>
+              </div>
+
+              <div class="personality-grid">
+                <button type="button" class="personality-option"
+                        data-personalidade="carinhoso" aria-pressed="false">
+                  <span class="personality-icon">♡</span>
+                  <strong>Carinhoso</strong>
+                  <small>Gentil, atencioso e acolhedor.</small>
+                </button>
+                <button type="button" class="personality-option"
+                        data-personalidade="divertido" aria-pressed="false">
+                  <span class="personality-icon">✦</span>
+                  <strong>Divertido</strong>
+                  <small>Animado, leve e espontâneo.</small>
+                </button>
+                <button type="button" class="personality-option"
+                        data-personalidade="curioso" aria-pressed="false">
+                  <span class="personality-icon">◇</span>
+                  <strong>Curioso</strong>
+                  <small>Atento, explorador e interessado.</small>
+                </button>
+                <button type="button" class="personality-option"
+                        data-personalidade="tranquilo" aria-pressed="false">
+                  <span class="personality-icon">☾</span>
+                  <strong>Tranquilo</strong>
+                  <small>Sereno, paciente e equilibrado.</small>
+                </button>
+              </div>
+              <p class="memory-help">
+                A personalidade escolhida também influencia as respostas demonstrativas da tela Conversar.
+              </p>
+            </section>
+
+            <section class="memory-panel">
+              <div class="memory-heading">
+                <div>
+                  <h2>Preferências pessoais</h2>
+                  <p>Informações que o BIBOU poderá usar para personalizar a experiência.</p>
+                </div>
+              </div>
+
+              <form id="formPreferencias" class="memory-form">
+                <div class="memory-field">
+                  <label for="nomeUsuario">Como você quer ser chamado?</label>
+                  <input id="nomeUsuario" type="text" maxlength="60"
+                         placeholder="Seu nome ou apelido" autocomplete="nickname">
+                </div>
+
+                <div class="memory-form-row">
+                  <div class="memory-field">
+                    <label for="corFavorita">Cor favorita</label>
+                    <input id="corFavorita" type="text" maxlength="40"
+                           placeholder="Ex.: Roxo">
+                  </div>
+                  <div class="memory-field">
+                    <label for="estiloConversa">Estilo de conversa</label>
+                    <select id="estiloConversa">
+                      <option value="fofo">Fofo</option>
+                      <option value="animado">Animado</option>
+                      <option value="objetivo">Objetivo</option>
+                      <option value="calmo">Calmo</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="memory-field">
+                  <label for="interessesUsuario">Assuntos de interesse</label>
+                  <textarea id="interessesUsuario" rows="3" maxlength="500"
+                            placeholder="Ex.: robótica, música, tecnologia..."></textarea>
+                </div>
+
+                <div class="memory-form-footer">
+                  <span>As preferências ficam salvas neste navegador.</span>
+                  <button type="submit" class="memory-primary-button">Salvar preferências</button>
+                </div>
+              </form>
+            </section>
+          </div>
+
+          <div class="memory-column">
+            <section class="memory-panel identity-panel">
+              <div class="identity-top">
+                <span>PERFIL DO COMPANHEIRO</span>
+                <span class="identity-dot"></span>
+              </div>
+
+              <div class="identity-avatar">
+                <div class="identity-face">
+                  <span class="identity-eye"></span>
+                  <span class="identity-eye"></span>
+                </div>
+              </div>
+
+              <h2 data-bibou-nome>BIBOU</h2>
+              <p id="resumoPersonalidade">Personalidade carinhosa</p>
+
+              <div class="identity-divider"></div>
+
+              <div class="identity-stat">
+                <span>Personalidade</span>
+                <strong id="personalidadeAtual">Carinhoso</strong>
+              </div>
+              <div class="identity-stat">
+                <span>Estilo de conversa</span>
+                <strong id="estiloAtual">Fofo</strong>
+              </div>
+              <div class="identity-stat">
+                <span>Memórias registradas</span>
+                <strong id="totalMemorias">0 / 30</strong>
+              </div>
+            </section>
+
+            <section class="memory-panel">
+              <div class="memory-heading">
+                <div>
+                  <h2>Memórias registradas</h2>
+                  <p>Pequenas informações para o BIBOU lembrar.</p>
+                </div>
+              </div>
+
+              <form id="formMemoria" class="memory-add-form">
+                <label for="novaMemoria">Adicionar memória</label>
+                <textarea id="novaMemoria" rows="3" maxlength="250"
+                          placeholder="Ex.: Gosto de aprender sobre robótica."
+                          required></textarea>
+                <button type="submit" class="memory-primary-button">
+                  + Adicionar memória
+                </button>
+              </form>
+
+              <div class="memory-list-header">
+                <span>MEMÓRIAS SALVAS</span>
+                <span id="contadorMemorias">0 registros</span>
+              </div>
+
+              <div id="listaMemorias" class="memory-list" aria-live="polite"></div>
+
+              <button type="button" id="limparMemorias" class="memory-danger-button">
+                Limpar todas as memórias
+              </button>
+            </section>
+
+            <div class="memory-notice">
+              <span>ⓘ</span>
+              <p>
+                Esta memória é demonstrativa e armazenada localmente.
+                Ainda não representa aprendizado autônomo ou uma memória
+                de inteligência artificial conectada ao robô.
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer class="rodape">
+        <span>BIBOU OS © 2026</span>
+        <span>Uma personalidade única para cada BIBOU.</span>
+      </footer>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

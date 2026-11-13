@@ -1,0 +1,260 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#15121d">
+  <title>Conversar | BIBOU OS</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/design-system.css">
+  <link rel="stylesheet" href="../css/conversar.css">
+
+  <script src="../js/bibou-preferencias.js" defer></script>
+  <script src="../js/conversar.js" defer></script>
+  <script src="../js/conversar-preferencias.js" defer></script>
+  
+</head>
+
+<body class="conversar-premium">
+  <div class="app">
+
+    <aside class="sidebar" id="sidebar">
+      <a href="dashboard.html" class="logo">
+        <span class="brand-symbol">b<span>.</span></span>
+        <span class="brand-name">bibou <small>OS</small></span>
+      </a>
+
+      <div class="menu-label">WORKSPACE</div>
+
+      <nav class="menu" aria-label="Menu principal">
+        <a class="menu-item" href="dashboard.html">
+          <span class="nav-icon">⌂</span> Visão geral
+        </a>
+        <a class="menu-item ativo" href="conversar.html"
+           aria-current="page">
+          <span class="nav-icon">◌</span> Conversar
+        </a>
+        <a class="menu-item" href="controle.html">
+          <span class="nav-icon">✣</span> Controle
+        </a>
+        <a class="menu-item" href="expressoes.html">
+          <span class="nav-icon">◡</span> Expressões
+        </a>
+
+        <div class="menu-label menu-label-second">SISTEMA</div>
+
+        <a class="menu-item" href="memoria.html">
+          <span class="nav-icon">◇</span> Memória
+        </a>
+        <a class="menu-item" href="sensores.html">
+          <span class="nav-icon">⌁</span> Sensores
+        </a>
+        <a class="menu-item" href="sensores.html#energia">
+          <span class="nav-icon">ϟ</span> Energia
+        </a>
+        <a class="menu-item" href="configuracoes.html">
+          <span class="nav-icon">⚙</span> Configurações
+        </a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="sidebar-device">
+          <span class="sidebar-device-dot"></span>
+          <div>
+            <strong data-bibou-nome>BIBOU</strong>
+            <small>Ambiente de demonstração</small>
+          </div>
+        </div>
+        <p>Interface BIBOU OS · v1.0</p>
+      </div>
+    </aside>
+
+    <div class="overlay" id="overlay" hidden></div>
+
+    <div class="conteudo">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="menu-toggle" id="menuToggle"
+                  type="button" aria-label="Abrir menu"
+                  aria-expanded="false">☰</button>
+
+          <div class="breadcrumb">
+            <span>BIBOU OS</span>
+            <span class="breadcrumb-divider">/</span>
+            <strong>Conversar</strong>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <span class="topbar-demo">
+            <span></span> Modo demonstração
+          </span>
+          <a href="configuracoes.html"
+             class="profile-button"
+             aria-label="Configurações">⚙</a>
+        </div>
+      </header>
+
+      <main class="conversar-main">
+
+        <div class="page-heading">
+          <div>
+            <span class="eyebrow">COMPANHEIRO VIRTUAL</span>
+            <h1>Conversar</h1>
+            <p>Um espaço para conversar com seu BIBOU.</p>
+          </div>
+          <button class="conversation-reset"
+                  id="limparConversa" type="button">
+            Limpar conversa
+          </button>
+        </div>
+
+        <div class="conversation-layout">
+
+          <!-- ÁREA PRINCIPAL -->
+          <section class="conversation-panel"
+                   aria-label="Conversa com BIBOU">
+
+            <div class="conversation-header">
+              <div class="conversation-identity">
+                <div class="conversation-avatar">
+                  <div class="avatar-eyes">
+                    <span></span><span></span>
+                  </div>
+                  <div class="avatar-smile"></div>
+                </div>
+
+                <div>
+                  <h2 data-bibou-nome>BIBOU</h2>
+                  <p>Seu companheiro virtual</p>
+                </div>
+              </div>
+
+              <span class="conversation-mode">
+                <span></span> Simulação
+              </span>
+            </div>
+
+            <div class="conversation-messages"
+                 id="mensagens"
+                 role="log"
+                 aria-live="polite"
+                 aria-label="Histórico da conversa">
+            </div>
+
+            <div class="conversation-composer">
+              <div class="suggestions" id="sugestoes">
+                <button type="button"
+                        data-mensagem="Oi, BIBOU!">
+                  Dizer olá
+                </button>
+                <button type="button"
+                        data-mensagem="Como você está?">
+                  Como você está?
+                </button>
+                <button type="button"
+                        data-mensagem="O que você sabe fazer?">
+                  O que você faz?
+                </button>
+              </div>
+
+              <form id="formConversa" class="composer-form">
+                <label for="entradaMensagem"
+                       class="sr-only">Mensagem</label>
+
+                <textarea
+                  id="entradaMensagem"
+                  rows="1"
+                  maxlength="1000"
+                  placeholder="Escreva sua mensagem..."
+                  aria-label="Digite sua mensagem"
+                  required
+                ></textarea>
+
+                <button type="submit"
+                        class="send-button"
+                        id="enviarMensagem"
+                        aria-label="Enviar mensagem">
+                  ↑
+                </button>
+              </form>
+
+              <p class="composer-note">
+                Enter para enviar · Shift + Enter para nova linha
+              </p>
+            </div>
+          </section>
+
+          <!-- PAINEL DE INFORMAÇÕES -->
+          <aside class="conversation-aside">
+
+            <section class="card companion-card">
+              <div class="companion-illustration">
+                <div class="companion-head">
+                  <div class="companion-screen">
+                    <div class="companion-eyes">
+                      <i></i><i></i>
+                    </div>
+                    <div class="companion-mouth"></div>
+                  </div>
+                </div>
+                <div class="companion-body">B</div>
+              </div>
+
+              <h2 data-bibou-nome>BIBOU</h2>
+              <p>Pequeno no tamanho. Grande na companhia.</p>
+
+              <div class="companion-divider"></div>
+
+              <div class="companion-detail">
+                <span>Personalidade</span>
+                <strong data-bibou-personalidade>
+                  Carinhoso
+                </strong>
+              </div>
+
+              <div class="companion-detail">
+                <span>Conexão física</span>
+                <strong>Não conectada</strong>
+              </div>
+
+              <a href="memoria.html"
+                 class="companion-edit">
+                Personalizar BIBOU ↗
+              </a>
+            </section>
+
+            <section class="card conversation-tip">
+              <span class="tip-label">SOBRE ESTA CONVERSA</span>
+              <h3>Um espaço só de vocês</h3>
+              <p id="bibouSaudacaoCompartilhada">
+                Que bom conversar com você!
+              </p>
+              <p class="tip-disclaimer">
+                As respostas são demonstrativas. Ainda não
+                existe uma IA conectada ao chat.
+              </p>
+            </section>
+
+          </aside>
+        </div>
+
+      </main>
+
+      <footer class="rodape">
+        <span>BIBOU OS © 2026</span>
+        <span>Conversas demonstrativas, com personalidade.</span>
+      </footer>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"
+       role="status" aria-live="polite"></div>
+</body>
+</html>

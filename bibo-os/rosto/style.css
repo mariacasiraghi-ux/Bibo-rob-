@@ -49,7 +49,35 @@ p {
     gap: 42px;
     align-items: center;
     justify-content: center;
+
+    /* Movimento suave dos olhos */
+    transition: transform 0.45s ease-in-out;
+    transform: translate(0, 0);
 }
+
+/* MOVIMENTOS DOS OLHOS */
+
+.olhos.olhar-centro {
+    transform: translate(0, 0);
+}
+
+.olhos.olhar-esquerda {
+    transform: translate(-65px, 0);
+}
+
+.olhos.olhar-direita {
+    transform: translate(65px, 0);
+}
+
+.olhos.olhar-cima {
+    transform: translate(0, -55px);
+}
+
+.olhos.olhar-baixo {
+    transform: translate(0, 55px);
+}
+
+/* APARENCIA DOS OLHOS */
 
 .olho {
     width: 75px;
@@ -72,6 +100,8 @@ p {
     background: #ffffff70;
 }
 
+/* EXPRESSAO FELIZ */
+
 .olhos.feliz .olho {
     height: 45px;
     border-radius: 0 0 50px 50px;
@@ -85,6 +115,8 @@ p {
     display: none;
 }
 
+/* EXPRESSAO TRISTE */
+
 .olhos.triste .olho {
     height: 75px;
     transform: translateY(12px) rotate(10deg);
@@ -94,11 +126,15 @@ p {
     transform: translateY(12px) rotate(-10deg);
 }
 
+/* EXPRESSAO SURPRESA */
+
 .olhos.surpreso .olho {
     width: 90px;
     height: 125px;
     border-radius: 50%;
 }
+
+/* PISCAR */
 
 .olhos.piscando .olho {
     height: 8px !important;
@@ -111,6 +147,8 @@ p {
 .olhos.piscando .olho::after {
     display: none;
 }
+
+/* CONTROLES */
 
 .controles {
     display: flex;
@@ -136,4 +174,28 @@ button:hover {
 #status {
     margin-top: 22px;
 }
-  
+
+
+/* BIBO - OLHOS ROXOS NEON */
+
+.olho {
+    background: #b66aff;
+    box-shadow:
+        0 0 15px #a855f7,
+        0 0 30px #9333ea80,
+        0 0 50px #7e22ce40;
+}
+
+.olho::after {
+    background: #ffffff85;
+}
+
+/* Expressao feliz */
+.olhos.feliz .olho {
+    border-bottom-color: #b66aff;
+}
+
+/* Piscadas */
+.olhos.piscando .olho {
+    background: #b66aff;
+}
