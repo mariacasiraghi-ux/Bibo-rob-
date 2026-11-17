@@ -15,23 +15,22 @@ load_dotenv(PASTA_PRINCIPAL / ".env")
 
 class IAGeminiBibo:
     def __init__(self):
-        self.nome = "BIBO"
+        self.nome = "BIBOU"
         self.modelo = "gemini-3.5-flash-lite"
 
         self.chave = os.getenv("GEMINI_API_KEY")
         self.pronta = bool(self.chave)
 
-        # Controle de tentativas
         self.bloqueado_ate = 0
         self.motivo_bloqueio = ""
 
     def resposta_local(self, texto):
         return {
             "texto": texto,
-            "expressao": "normal"
+            "expressao": "calmo"
         }
 
-    def responder(self, pergunta):
+    def responder(self, pergunta, historico=None):
         pergunta = pergunta.strip()
 
         if not pergunta:
@@ -49,7 +48,6 @@ class IAGeminiBibo:
                 "Minha inteligência Gemini ainda não está configurada."
             )
 
-        # Verificar bloqueio temporário
         agora = time.monotonic()
 
         if agora < self.bloqueado_ate:
@@ -61,22 +59,62 @@ class IAGeminiBibo:
             )
 
         try:
+            # Preparar as mensagens anteriores
+            conteudo = []
+
+            for item in (historico or [])[-12:]:
+                papel = item.get("role")
+                texto = item.get("texto", "")
+
+                if papel not in ("user", "model"):
+                    continue
+
+                if not isinstance(texto, str) or not texto.strip():
+                    continue
+
+                conteudo.append(
+                    types.Content(
+                        role=papel,
+                        parts=[
+                            types.Part(text=texto[:2000])
+                        ]
+                    )
+                )
+
+            # Adicionar a pergunta atual
+            conteudo.append(
+                types.Content(
+                    role="user",
+                    parts=[
+                        types.Part(text=pergunta)
+                    ]
+                )
+            )
+
             cliente = genai.Client(api_key=self.chave)
 
             resposta = cliente.models.generate_content(
                 model=self.modelo,
-                contents=pergunta,
+                contents=conteudo,
                 config=types.GenerateContentConfig(
                     system_instruction=(
-                        "Você é BIBO, um pequeno robô "
+                        "Você é BIBOU, um pequeno robô "
                         "companheiro, amigável e curioso. "
                         "Responda em português brasileiro. "
                         "Use linguagem simples e natural. "
                         "Prefira respostas curtas. "
+                        "Considere o histórico da conversa "
+                        "para entender mensagens como "
+                        "'sim', 'não sei' e 'quero'. "
+                        "Se você contou uma charada e a pessoa "
+                        "disser que não sabe, revele a resposta. "
+                        "Evite repetir cumprimentos e "
+                        "apresentações desnecessariamente. "
+                        "Não invente lembranças. "
                         "Não afirme que realizou movimentos "
                         "ou ações físicas."
                     ),
-                    max_output_tokens=150,
+                    max_output_tokens=250,
                     temperature=0.7
                 )
             )
@@ -103,8 +141,8 @@ class IAGeminiBibo:
                 print("[GEMINI] Servidor ocupado (503).")
 
                 return self.resposta_local(
-                    "O Gemini está muito ocupado agora! "
-                    "Vou aguardar um minutinho antes de tentar novamente."
+                    "O Gemini está ocupado agora. "
+                    "Podemos tentar novamente em um minuto!"
                 )
 
             print("[GEMINI] Erro no servidor:", codigo)
@@ -124,14 +162,13 @@ class IAGeminiBibo:
 
                 return self.resposta_local(
                     "Atingi um limite temporário de consultas. "
-                    "Vou esperar alguns minutos antes de tentar novamente."
+                    "Vamos tentar novamente em alguns minutos!"
                 )
 
             print("[GEMINI] Erro de solicitação:", codigo)
 
             return self.resposta_local(
-                "Não consegui consultar o Gemini agora. "
-                "Minha personalidade e memória continuam funcionando!"
+                "Não consegui consultar o Gemini agora."
             )
 
         except Exception as erro:

@@ -10,7 +10,7 @@ from monitor_segundo_plano import MonitorSegundoPlano
 
 
 # ==========================================
-# INICIALIZACAO DO BIBO
+# INICIALIZACAO DO BIBOU
 # ==========================================
 
 bibo = ControladorBibo()
@@ -19,19 +19,30 @@ inteligencia = InteligenciaBibo()
 
 monitor = MonitorSegundoPlano()
 
+EXPRESSOES = (
+    "feliz",
+    "triste",
+    "surpreso",
+    "calmo",
+    "carinho",
+    "sono",
+    "curioso",
+    "animado",
+)
 
 print("=" * 45)
-print("          BIBO - SISTEMA CENTRAL")
+print("         BIBOU - SISTEMA CENTRAL")
 print("=" * 45)
 
-print("\nBIBO iniciado com sucesso!")
+print("\nBIBOU iniciado com sucesso!")
 
 print("\nMovimentos:")
 print("frente, tras, esquerda, direita, parar")
 print("acenar, dancar")
 
 print("\nExpressoes:")
-print("feliz, triste")
+print(", ".join(EXPRESSOES))
+print("piscar")
 
 print("\nConversacao:")
 print("Personalidade e memoria ativadas!")
@@ -42,6 +53,7 @@ if MODO_IA == "gemini":
     print("Gemini online ativado!")
 else:
     print("Modo de simulacao ativado.")
+
 
 # ==========================================
 # INICIAR MONITORAMENTO
@@ -64,33 +76,63 @@ try:
             entrada = input("\nVocê: ").strip()
 
         except (KeyboardInterrupt, EOFError):
-            print("\nBIBO: Até logo!")
+            print("\nBIBOU: Ate logo!")
             break
 
         if not entrada:
             continue
 
-        if entrada.lower() == "sair":
-            print("\nBIBO: Até logo!")
+        comando_digitado = entrada.lower()
+
+        if comando_digitado == "sair":
+            print("\nBIBOU: Ate logo!")
             break
 
-        # 1. Verificar comandos do robo
+        # 1. Controlar expressoes originais do BIBOU OS
+        if comando_digitado in EXPRESSOES or comando_digitado == "normal":
+
+            expressao = (
+                "calmo"
+                if comando_digitado == "normal"
+                else comando_digitado
+            )
+
+            bibo.atualizar_servidor({
+                "expressao": expressao
+            })
+
+            print(
+                f"\nBIBOU: Expressao alterada para {expressao}!"
+            )
+            continue
+
+        # 2. Fazer o BIBOU piscar
+        if comando_digitado == "piscar":
+
+            bibo.atualizar_servidor({
+                "piscar": True
+            })
+
+            print("\nBIBOU: Piscando!")
+            continue
+
+        # 3. Verificar comandos de movimento
         comando = interpretar_comando(entrada)
 
         if comando:
             bibo.enviar_comando(comando)
             continue
 
-        # 2. Consultar personalidade e memoria
+        # 4. Consultar personalidade e memoria
         resposta = personalidade.responder(entrada)
 
-        # 3. Perguntas desconhecidas vao para a IA
+        # 5. Perguntas desconhecidas vao para a IA
         if resposta["texto"].startswith(
             "Ainda estou aprendendo a conversar!"
         ):
 
             print(
-                "\n[BIBO] Consultando inteligencia artificial..."
+                "\n[BIBOU] Consultando inteligencia artificial..."
             )
 
             try:
@@ -98,7 +140,7 @@ try:
 
             except Exception as erro:
                 print(
-                    "[BIBO] Erro na inteligencia:",
+                    "[BIBOU] Erro na inteligencia:",
                     type(erro).__name__
                 )
 
@@ -107,17 +149,22 @@ try:
                         "Minha inteligencia artificial esta "
                         "temporariamente indisponivel."
                     ),
-                    "expressao": "normal"
+                    "expressao": "calmo"
                 }
 
-        # 4. Exibir resposta
-        print("\nBIBO:", resposta["texto"])
+        # 6. Exibir resposta
+        print("\nBIBOU:", resposta["texto"])
 
-        # 5. Atualizar rosto digital
+        # 7. Atualizar o rosto digital
+        expressao_resposta = resposta.get(
+            "expressao", "calmo"
+        )
+
+        if expressao_resposta not in EXPRESSOES:
+            expressao_resposta = "calmo"
+
         bibo.atualizar_servidor({
-            "expressao": resposta.get(
-                "expressao", "normal"
-            )
+            "expressao": expressao_resposta
         })
 
 finally:

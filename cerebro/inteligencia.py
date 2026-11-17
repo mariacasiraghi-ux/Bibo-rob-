@@ -71,7 +71,7 @@ class InteligenciaBibo:
 
         return " ".join(texto.split())
 
-    def responder(self, pergunta):
+    def responder(self, pergunta, historico=None):
         pergunta = pergunta.strip()
 
         if not pergunta:
@@ -90,7 +90,10 @@ class InteligenciaBibo:
             return self.responder_simulacao(pergunta)
 
         if self.modo == "gemini":
-            return self.ia_gemini.responder(pergunta)
+            return self.ia_gemini.responder(
+        pergunta,
+        historico=historico
+    )
 
         return {
             "texto": "Meu modo de inteligência não foi reconhecido.",

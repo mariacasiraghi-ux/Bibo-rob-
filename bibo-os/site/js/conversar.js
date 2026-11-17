@@ -393,33 +393,92 @@ document.addEventListener("DOMContentLoaded", () => {
       Math.min(entrada.scrollHeight, 130) + "px";
   }
 
-  function enviarTexto(texto) {
-    const mensagem = texto.trim();
+  
+async function enviarTexto(texto) {
+  const mensagem = texto.trim();
 
-    if (!mensagem || respondendo) return;
+  if (!mensagem || respondendo) return;
 
-    adicionarMensagem("user", mensagem);
+  adicionarMensagem("user", mensagem);
 
-    entrada.value = "";
-    ajustarAltura();
+  entrada.value = "";
+  ajustarAltura();
 
-    respondendo = true;
-    enviar.disabled = true;
-    mostrarDigitando();
+  respondendo = true;
+  enviar.disabled = true;
+  mostrarDigitando();
 
-    timerResposta = setTimeout(() => {
-      timerResposta = null;
-      esconderDigitando();
+  try {
+    // Enviar mensagem ao cerebro Python
+    const requisicao = await fetch(
+      "http://127.0.0.1:5001/api/conversar",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          mensagem: mensagem
+        })
+      }
+    );
 
-      const resposta = gerarResposta(mensagem);
+    if (!requisicao.ok) {
+      throw new Error(
+        "Erro na API: " + requisicao.status
+      );
+    }
 
-      adicionarMensagem("bot", resposta);
+    const dados = await requisicao.json();
 
-      respondendo = false;
-      enviar.disabled = false;
-      entrada.focus();
-    }, 700);
+    esconderDigitando();
+
+    // Mostrar a resposta real do cerebro
+    adicionarMensagem(
+      "bot",
+      dados.texto || "Nao consegui responder agora."
+    );
+
+    // Atualizar a expressao facial do BIBOU
+    if (dados.expressao) {
+      try {
+        await fetch(
+          "http://127.0.0.1:5000/estado",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              expressao: dados.expressao
+            })
+          }
+        );
+      } catch (erroRosto) {
+        console.warn(
+          "Nao foi possivel atualizar o rosto:",
+          erroRosto
+        );
+      }
+    }
+
+  } catch (erro) {
+    console.error("Erro na conversa:", erro);
+
+    esconderDigitando();
+
+    adicionarMensagem(
+      "bot",
+      "Nao consegui me conectar ao meu cerebro Python. Verifique se o servidor esta ligado."
+    );
+
+  } finally {
+    respondendo = false;
+    enviar.disabled = false;
+    entrada.focus();
   }
+}
+
 
   formulario.addEventListener("submit", evento => {
     evento.preventDefault();
