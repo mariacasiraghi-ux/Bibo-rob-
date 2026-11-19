@@ -51,6 +51,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let pointerAtivo = null;
   let teclaAtiva = null;
   let timerAcao = null;
+  let sessaoControle = null;
+  let movimentoRemoto = null;
 
   // MENU RESPONSIVO
 
@@ -159,10 +161,159 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function pararTudo() {
+    const remoto = movimentoRemoto;
+    if (remoto) {
+      clearInterval(remoto.timer);
+      movimentoRemoto = null;
+      enviarParadaOrdenada(remoto.sessao);
+    }
+
     pointerAtivo = null;
     teclaAtiva = null;
     centralizarJoystick();
     definirMovimento("parar");
+  }
+
+  function abrirSessaoControle() {
+    const sessao = {
+      id: crypto.randomUUID(),
+      geracao: null,
+      sequencia: 0
+    };
+    sessao.pronta = (async () => {
+      const resposta = await fetch(
+        "http://127.0.0.1:5001/api/controle/sessao",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessao: sessao.id })
+        }
+      );
+      const dados = await resposta.json();
+      if (!resposta.ok || dados.sucesso !== true) {
+        throw new Error(dados.erro || "Não foi possível abrir a sessão de controle.");
+      }
+      sessao.geracao = dados.geracao;
+    })();
+    sessaoControle = sessao;
+    return sessao;
+  }
+
+  async function enviarComandoOrdenado(endpoint, comando, sessao) {
+    const sequencia = ++sessao.sequencia;
+    try {
+      await sessao.pronta;
+      const resposta = await fetch(
+        "http://127.0.0.1:5001" + endpoint,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            comando,
+            sessao: sessao.id,
+            geracao: sessao.geracao,
+            sequencia
+          })
+        }
+      );
+      const dados = await resposta.json();
+      if (!resposta.ok || dados.sucesso !== true) {
+        throw new Error(dados.erro || "Comando não confirmado pela API.");
+      }
+      return dados;
+    } catch (erro) {
+      erro.sequenciaControle = sequencia;
+      throw erro;
+    }
+  }
+
+  function mostrarFalhaControle(erro) {
+    console.error("Falha ao comunicar com o simulador:", erro);
+    const toast = $("toast");
+    if (toast) {
+      toast.textContent = "Comunicação indisponível; o watchdog virtual interromperá o movimento.";
+      toast.classList.add("visivel");
+      setTimeout(() => toast.classList.remove("visivel"), 4000);
+    }
+  }
+
+  function enviarParadaOrdenada(sessao) {
+    enviarComandoOrdenado("/api/controle/parar", "parar", sessao)
+      .catch(erro => {
+        if (sessao === sessaoControle) mostrarFalhaControle(erro);
+      });
+  }
+
+  function iniciarMovimentoRemoto(direcao, pointerId) {
+    const sessao = abrirSessaoControle();
+    const remoto = {
+      direcao,
+      pointerId,
+      sessao,
+      timer: null
+    };
+    movimentoRemoto = remoto;
+
+    const enviar = () => {
+      enviarComandoOrdenado(
+        "/api/controle/movimento",
+        direcao,
+        sessao
+      ).catch(erro => {
+        if (
+          movimentoRemoto !== remoto ||
+          erro.sequenciaControle !== sessao.sequencia
+        ) return;
+
+        clearInterval(remoto.timer);
+        movimentoRemoto = null;
+        definirMovimento("parar");
+        enviarParadaOrdenada(sessao);
+        mostrarFalhaControle(erro);
+      });
+    };
+
+    enviar();
+    remoto.timer = setInterval(enviar, 400);
+  }
+
+  async function solicitarParada() {
+    // A resposta visual local não espera pela rede.
+    const remoto = movimentoRemoto;
+    pararTudo();
+
+    if (remoto) return;
+
+    if (sessaoControle) {
+      enviarParadaOrdenada(sessaoControle);
+      return;
+    }
+
+    try {
+      const resposta = await fetch(
+        "http://127.0.0.1:5001/api/controle/parar",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ comando: "parar" })
+        }
+      );
+      const dados = await resposta.json();
+
+      if (!resposta.ok || dados.sucesso !== true) {
+        throw new Error(dados.erro || "Parada não confirmada pela API.");
+      }
+
+      console.info("Parada confirmada pelo ESP32 virtual.");
+    } catch (erro) {
+      console.error("Falha ao enviar PARAR para a API:", erro);
+      const toast = $("toast");
+      if (toast) {
+        toast.textContent = "Parada visual realizada; API indisponível ou sem confirmação.";
+        toast.classList.add("visivel");
+        setTimeout(() => toast.classList.remove("visivel"), 4000);
+      }
+    }
   }
 
   // VELOCIDADE
@@ -253,6 +404,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     botao.addEventListener("pointerdown", evento => {
       if (idPointer !== null) return;
+      if (
+        movimentoRemoto &&
+        movimentoRemoto.pointerId !== evento.pointerId
+      ) return;
 
       idPointer = evento.pointerId;
       botao.setPointerCapture(evento.pointerId);
@@ -261,6 +416,7 @@ document.addEventListener("DOMContentLoaded", () => {
         botao.dataset.direcao,
         "botao"
       );
+      iniciarMovimentoRemoto(botao.dataset.direcao, evento.pointerId);
     });
 
     function soltar(evento) {
@@ -268,7 +424,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       idPointer = null;
 
-      if (fonteAtiva === "botao") {
+      if (movimentoRemoto?.pointerId === evento.pointerId) {
+        pararTudo();
+      } else if (fonteAtiva === "botao") {
         definirMovimento("parar");
       }
     }
@@ -344,12 +502,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   $("pararMovimento").addEventListener(
     "click",
-    pararTudo
+    solicitarParada
   );
 
   $("paradaGeral").addEventListener(
     "click",
-    pararTudo
+    solicitarParada
   );
 
   // SEGURANÇA DA SIMULAÇÃO:

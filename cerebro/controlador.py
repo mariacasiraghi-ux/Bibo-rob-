@@ -14,10 +14,14 @@ from comunicacao_esp32 import ComunicacaoESP32
 
 class ControladorBibo:
     def __init__(self):
-        self.estado = "DISPONIVEL"
         self.esp32 = ESP32Virtual()
         self.comunicacao = ComunicacaoESP32()
         self.seguranca = SegurancaMovimentos()
+
+    @property
+    def estado(self):
+        # Estado derivado do simulador para refletir também o watchdog.
+        return self.esp32.estado
 
 
 
@@ -38,7 +42,16 @@ class ControladorBibo:
         except (URLError, TimeoutError):
             print("[SERVIDOR] Não foi possível conectar ao servidor.")
 
-    def enviar_comando(self, comando):
+    def enviar_comando(self, comando, sincronizar_estado=True):
+
+        if not isinstance(comando, dict):
+            return {"sucesso": False, "mensagem": "Comando invalido"}
+
+        if comando.get("acao") == "parar" and self.comunicacao.modo != "virtual":
+            return {
+                "sucesso": False,
+                "mensagem": "A parada pela API esta limitada ao ESP32 virtual"
+            }
 
         verificacao = self.seguranca.verificar(comando)
 
@@ -49,7 +62,10 @@ class ControladorBibo:
             for alerta in verificacao.get("alertas", []):
                 print("[ALERTA]", alerta)
 
-            return
+            return {
+                "sucesso": False,
+                "mensagem": verificacao.get("motivo", "Comando bloqueado")
+            }
 
         mensagem = {
             "dispositivo": "BIBO",
@@ -64,17 +80,39 @@ class ControladorBibo:
 
         if not confirmacao["sucesso"]:
             print("[CÉREBRO] Falha na comunicação com ESP32.")
-            return
+            return {"sucesso": False, "mensagem": confirmacao.get("mensagem")}
 
         resposta = self.esp32.receber(mensagem)
-        self.estado = resposta["estado"]
+        estado_atual = self.esp32.consultar_estado()
 
         print("\n[CÉREBRO] Resposta do ESP32:")
         print(json.dumps(resposta, indent=4, ensure_ascii=False))
 
-        dados = {"status": self.estado}
+        dados = {"status": estado_atual["estado"]}
 
         if comando.get("sistema") == "rosto":
             dados["expressao"] = comando.get("acao", "normal")
 
-        self.atualizar_servidor(dados)
+        if sincronizar_estado:
+            self.atualizar_servidor(dados)
+
+        if comando.get("acao") == "parar":
+            confirmado = (
+                resposta.get("estado") == "DISPONIVEL"
+                and estado_atual["roda_esquerda"] == 0
+                and estado_atual["roda_direita"] == 0
+            )
+            return {
+                "sucesso": confirmado,
+                "mensagem": (
+                    "Parada confirmada pelo ESP32 virtual"
+                    if confirmado else "O simulador nao confirmou a parada"
+                ),
+                "estado": estado_atual["estado"],
+                "rodas": {
+                    "esquerda": estado_atual["roda_esquerda"],
+                    "direita": estado_atual["roda_direita"]
+                }
+            }
+
+        return {"sucesso": True, "estado": estado_atual["estado"]}
